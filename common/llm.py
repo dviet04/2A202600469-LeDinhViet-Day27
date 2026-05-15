@@ -12,14 +12,18 @@ from langchain_openai import ChatOpenAI
 def get_llm(temperature: float = 0.2) -> ChatOpenAI:
     """Return a `ChatOpenAI` configured for OpenAI or OpenRouter.
 
-    - If `OPENAI_API_KEY` is set, use it directly.
+    - If `OPENAI_API_KEY` is set, use it directly (model should NOT have 'openai/' prefix).
     - Otherwise, if `OPENROUTER_API_KEY` is set, use the base URL from
       `LLM_BASE_URL` (defaulting to OpenRouter) so existing setups keep working.
     """
     openai_key = os.environ.get("OPENAI_API_KEY")
     if openai_key:
+        model = os.environ.get("LLM_MODEL", "gpt-4o-mini")
+        # Strip "openai/" prefix if present (for backwards compatibility with OpenRouter config)
+        if model.startswith("openai/"):
+            model = model[7:]
         return ChatOpenAI(
-            model=os.environ.get("LLM_MODEL", "gpt-4o-mini"),
+            model=model,
             api_key=openai_key,
             temperature=temperature,
         )
